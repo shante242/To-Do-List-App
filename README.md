@@ -91,3 +91,121 @@ In conclusion,
 Summary  
 The goal of the To-Do List App is to provide a straightforward yet efficient solution for stress management, productivity enhancement, and daily task management. It provides all the necessary tools for task organization in a clear, user-friendly interface.
 
+
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+
+export default function TodoApp() {
+  const [task, setTask] = useState('');
+  const [tasks, setTasks] = useState([]);
+
+
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('tasks')
+      .orderBy('createdAt', 'desc')
+      .onSnapshot(snapshot => {
+        const newTasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTasks(newTasks);
+      });
+
+    return () => unsubscribe();
+  }, []);
+
+
+  const addTask = () => {
+    if (task.trim()) {
+      firestore().collection('tasks').add({
+        title: task,
+        completed: false,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+      setTask('');
+    }
+  };
+
+  // Toggle task completion
+  const toggleComplete = (id, currentStatus) => {
+    firestore().collection('tasks').doc(id).update({
+      completed: !currentStatus,
+    });
+  };
+
+  // Delete a task
+  const deleteTask = (id) => {
+    firestore().collection('tasks').doc(id).delete();
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.taskItem}>
+      <TouchableOpacity onPress={() => toggleComplete(item.id, item.completed)}>
+        <Text style={[styles.taskText, item.completed && styles.completedText]}>{item.title}</Text>
+      </TouchableOpacity>
+      <Button title="Delete" onPress={() => deleteTask(item.id)} />
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.heading}>To-Do List</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Add a task..."
+        value={task}
+        onChangeText={setTask}
+      />
+      <Button title="Add Task" onPress={addTask} />
+      <FlatList
+        data={tasks}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        style={styles.taskList}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  taskList: {
+    marginTop: 20,
+  },
+  taskItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  taskText: {
+    fontSize: 16,
+  },
+  completedText: {
+    textDecorationLine: 'line-through',
+    color: '#888',
+  },
+});
