@@ -44,10 +44,10 @@ The program will be created as a cross-platform application using a shared codeb
 ## V. Functionality
 
 ### Core Features
-- Add, edit, and delete tasks  
-- Organize tasks using category tags (e.g., personal, work)  
-- Set due dates and push notification reminders  
-- Mark tasks as completed and view task status
+ Add, edit, and delete tasks  
+ Organize tasks using category tags (e.g., personal, work)  
+ Set due dates and push notification reminders  
+ Mark tasks as completed and view task status
 
 ### Additional Features
 - **Cloud Syncing**: Firebase allows task synchronization across multiple devices  
